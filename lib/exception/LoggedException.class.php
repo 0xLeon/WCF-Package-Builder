@@ -8,7 +8,7 @@ use packageBuilder\PackageBuilder;
  * @author	Stefan Hahn
  * @copyright	2011 Stefan Hahn
  * @license	GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
- * @package	com.woltlab.wcf.packageBuilder
+ * @package	com.leon.wcf.packageBuilder
  * @subpackage	exception
  */
 class LoggedException extends \Exception {

@@ -2,11 +2,30 @@
 namespace packageBuilder\xml;
 use packageBuilder\exception;
 
+/**
+ * Checks if a xml document is well-formed and valid.
+ * 
+ * @author 	Stefan Hahn
+ * @copyright	2011 Stefan Hahn
+ * @license	GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
+ * @package	com.leon.wcf.packageBuilder
+ * @subpackage	xml
+ */
 class XMLParser {
 	const NS_SCHEMA_INSTANCE = 'http://www.w3.org/2001/XMLSchema-instance';
 	const NS_WOLTLAB = 'http://www.woltlab.com';
+	
+	/**
+	 * DOM objected needed to parse xml files
+	 * @var	DOMCodument
+	 */
 	protected $dom = null;
 	
+	/**
+	 * Creates a new XMLParser object.
+	 * 
+	 * @param	string		$file	path to xml file
+	 */
 	public function __construct($file = '') {
 		$this->dom = new DOMDocument('1.0', 'uft-8');
 		
@@ -15,6 +34,11 @@ class XMLParser {
 		}
 	}
 	
+	/**
+	 * Loads a xml file
+	 * 
+	 * @param	string		$file	path to xml file
+	 */
 	public function load($file) {
 		$this->dom->load($file);
 		
@@ -28,6 +52,9 @@ class XMLParser {
 		}
 	}
 	
+	/**
+	 * Validates the loaded xml file. Supports DTD and XML Schema.
+	 */
 	public function validate() {
 		if ($this->dom->doctype === null) {
 			$xsiSchemaLocation = preg_split('/\s+/', $dom->documentElement->getAttributeNS(self::NS_SCHEMA_INSTANCE, 'schemaLocation'));
@@ -69,6 +96,9 @@ class XMLParser {
 		}
 	}
 	
+	/**
+	 * Checks if and internal libxml errors occurred.
+	 */
 	protected function checkErrors() {
 		$errors = libxml_get_errors();
 		libxml_clear_errors();

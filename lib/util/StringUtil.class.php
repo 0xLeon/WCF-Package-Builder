@@ -8,7 +8,7 @@ use packageBuilder\PackageBuilder;
  * @author 	Marcel Werk
  * @copyright	2001-2009 WoltLab GmbH
  * @license	GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
- * @package	com.woltlab.wcf.packageBuilder
+ * @package	com.leon.wcf.packageBuilder
  * @subpackage	util
  */
 class StringUtil {

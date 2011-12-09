@@ -8,7 +8,7 @@ use packageBuilder\exception\SystemException;
  * @author	Marcel Werk
  * @copyright	2001-2011 WoltLab GmbH
  * @license	GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
- * @package	com.woltlab.wcf.packageBuilder
+ * @package	com.leon.wcf.packageBuilder
  * @subpackage	io
  */
 class RemoteFile extends File {

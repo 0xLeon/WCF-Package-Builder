@@ -7,7 +7,7 @@ namespace packageBuilder\exception;
  * @author	Stefan Hahn
  * @copyright	2011 Stefan Hahn
  * @license	GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
- * @package	com.woltlab.wcf
+ * @package	com.leon.wcf
  * @subpackage	exception
  */
 class SystemException extends LoggedException implements IPrintableException {

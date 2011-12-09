@@ -3,7 +3,7 @@
  * @author	Stefan Hahn
  * @copyright	2011 Stefan Hahn
  * @license	GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
- * @package	com.woltlab.wcf.packageBuilder
+ * @package	com.leon.wcf.packageBuilder
  */
 // define the package builder root dir
 define('APP_DIR', dirname(__FILE__).'/');
