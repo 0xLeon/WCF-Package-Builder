@@ -1,10 +1,15 @@
 <?php
 namespace packageBuilder;
+use packageBuilder\config\Config;
+use packageBuilder\language\Language;
 
 require_once(APP_DIR.'lib/core.functions.php');
 
 define('PACKAGE_BUILDER_VERSION', '1.0.0dev');
 
+// todo: check for CLI SAPI, right here or in core.functions.php?
+
+// todo: move to core.functions.php?
 libxml_use_internal_errors(true);
 
 /**
@@ -16,6 +21,90 @@ libxml_use_internal_errors(true);
  * @package	com.woltlab.wcf.packageBuilder
  */
 final class PackageBuilder {
+	/**
+	 * config object
+	 * @var	packageBuilder\config\Config
+	 */
+	protected static $configObj = null;
+	
+	/**
+	 * arguments object
+	 * @var	packageBuilder\arguments\Arguments
+	 */
+	protected static $argumentsObj = null;
+	
+	/**
+	 * language object
+	 * @var packageBuilder\language\Language
+	 */
+	protected static $languageObj = null;
+	
+	/**
+	 * Calls all init functions and starts the building process.
+	 */
+	public function __construct() {
+		$this->initConfig();
+		$this->initArguments();
+		$this->initLanguage();
+		
+		$this->build();
+	}
+	
+	/**
+	 * Reads the config.
+	 */
+	protected function initConfig() {
+		// todo: config stuff, first run check
+	}
+	
+	/**
+	 * Reads CLI arguments
+	 */
+	protected function initArguments() {
+		// todo: arguments stuff
+	}
+	
+	/**
+	 * Initialises the language engine.
+	 */
+	protected function initLanguage() {
+		// todo: language stuff
+	}
+	
+	/**
+	 * Executes building process.
+	 */
+	protected function build() {
+		// todo: building stuff
+	}
+	
+	/**
+	 * Returns the config object.
+	 * 
+	 * @return	packageBuilder\config\Config
+	 */
+	public static function getConfig() {
+		return self::$configObj;
+	}
+	
+	/**
+	 * Returns the arguments object.
+	 * 
+	 * @return	packageBuilder\arguments\Arguments
+	 */
+	public static function getArguments() {
+		return self::$argumentsObj;
+	}
+	
+	/**
+	 * Returns the language object.
+	 * 
+	 * @return	packageBuilder\language\Language
+	 */
+	public static function getLanguage() {
+		return self::$languageObj;
+	}
+	
 	/**
 	 * Includes the required classes automatically.
 	 *
