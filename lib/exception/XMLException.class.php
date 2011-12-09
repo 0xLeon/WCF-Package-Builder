@@ -10,7 +10,7 @@ namespace packageBuilder\exception;
  * @package	com.leon.wcf.packageBuilder
  * @subpackage	exception
  */
-class XMLException extends \Exception implements IPrintableException, IRecoverableException {
+class XMLException extends LoggedException implements IPrintableException, IRecoverableException {
 	protected $level = LIBXML_ERR_NONE;
 	protected $xmlFile = '';
 	protected $xmlLine = 0;
