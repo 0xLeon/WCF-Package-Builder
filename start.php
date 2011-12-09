@@ -11,6 +11,3 @@ define('APP_DIR', dirname(__FILE__).'/');
 // initiate package builder core
 require_once(APP_DIR.'lib/PackageBuilder.class.php');
 new packageBuilder\PackageBuilder();
-
-echo 'Check', PHP_EOL;
-fread(STDIN, 1);
