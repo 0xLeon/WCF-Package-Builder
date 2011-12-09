@@ -48,6 +48,7 @@ final class PackageBuilder {
 		}
 		
 		if (!($e instanceof exception\IRecoverableException)) {
+			print self::getLanguage()->get('packageBuilder.global.leave');
 			exit;
 		}
 	}
