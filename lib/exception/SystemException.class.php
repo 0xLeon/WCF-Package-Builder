@@ -1,6 +1,5 @@
 <?php
 namespace packageBuilder\exception;
-use packageBuilder\PackageBuilder
 
 /**
  * A SystemException is thrown when an unexpected error occurs.
