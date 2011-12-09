@@ -10,4 +10,4 @@
  * @package	com.leon.wcf.packageBuilder
  * @subpackage	exception
  */
-interface IRecoverableException { };
+interface IRecoverableException { }
