@@ -1,4 +1,6 @@
 var fs = require('fs');
+var util = require('util');
+var EventEmitter = require('events').EventEmitter;
 var fstream = require('fstream');
 var Path = require('path');
 var glob = require('glob');
@@ -7,7 +9,24 @@ var debug = false;
 
 console.log('Welcome to WCF Package Builder');
 
-function getBuildConfig() {
+function PackageBuilder() {
+	var steps = ['getBuildConfig', 'checkPackageDir', 'checkBuildDir', 'clearBuildDir', 'getPackageConfig', 'getACPTemplates', 'getTemplates', 'getFiles', 'getPaclageInstallationPlugins', 'buildPackage'];
+	
+	if (!(this instanceof PackageBuilder)) return new PackageBuilder();
+	
+	EventEmitter.call(this);
+	
+	this.on('step', function() {
+		this[steps.shift()]();
+	});
+	
+	this.emit('step');
+}
+
+util.inherits(PackageBuilder, EventEmitter);
+
+PackageBuilder.prototype.getBuildConfig = function() {
+	var me = this;
 	if (debug) console.log('getBuildConfig called');
 	
 	if (process.argv.length < 3) {
@@ -24,7 +43,7 @@ function getBuildConfig() {
 			try {
 				process.chdir(process.argv[2]);
 				if (debug) console.log('Changed working directoy to "' + process.cwd() + '"');
-				checkPackageDir();
+				me.emit('step');
 			}
 			catch (err) {
 				console.error('Couldn\'t change working directory to "' + process.argv[2] + '"');
@@ -35,7 +54,9 @@ function getBuildConfig() {
 	});
 }
 
-function checkPackageDir() {
+PackageBuilder.prototype.checkPackageDir = function() {
+	var me = this;
+	
 	if (debug) console.log('checkPackageDir called');
 	
 	fs.exists('./src/package.xml', function(exists) {
@@ -44,36 +65,40 @@ function checkPackageDir() {
 			process.exit(4);
 		}
 		else {
-			checkBuildDir();
+			me.emit('step');
 		}
 	});
 }
 
-function checkBuildDir() {
+PackageBuilder.prototype.checkBuildDir = function() {
+	var me = this;
+	
 	if (debug) console.log('checkBuildDir called');
 	
 	fs.exists('./.build', function(exists) {
 		if (exists) {
-			clearBuildDir();
-			return;
+			me.emit('step');
 		}
-		
-		fs.mkdir('./.build', 0777, function(err) {
-			if (err) throw err;
-			
-			fs.exists('./.build', function(exists) {
-				if (!exists) {
-					throw new Error('Could not create .build dir');
-				}
-				else {
-					getPackageConfig();
-				}
+		else {
+			fs.mkdir('./.build', 0777, function(err) {
+				if (err) throw err;
+				
+				fs.exists('./.build', function(exists) {
+					if (!exists) {
+						throw new Error('Could not create .build dir');
+					}
+					else {
+						me.emit('step');
+					}
+				});
 			});
-		});
+		}
 	});
 }
 
-function clearBuildDir() {
+PackageBuilder.prototype.clearBuildDir = function() {
+	var me = this;
+	
 	if (debug) console.log('clearBuildDir called');
 	
 	glob('./build/*', function(err, matches) {
@@ -87,18 +112,20 @@ function clearBuildDir() {
 					if (err) throw err;
 					
 					if ((index + 1) === matches.length) {
-						getPackageConfig();
+						me.emit('step');
 					}
 				});
 			});
 		}
 		else {
-			getPackageConfig();
+			me.emit('step');
 		}
 	});
 }
 
-function getPackageConfig() {
+PackageBuilder.prototype.getPackageConfig = function() {
+	var me = this;
+	
 	if (debug) console.log('getPackageConfig called');
 	
 	glob('{./src/*.xml,./src/*.sql,./src/templatepatch.diff,./src/acptemplatepatch.diff}', function(err, matches) {
@@ -108,157 +135,165 @@ function getPackageConfig() {
 			fs.createReadStream(path).pipe(fs.createWriteStream('./.build/' + Path.basename(path)));
 			
 			if ((index + 1) === matches.length) {
-				getACPTemplates();
+				me.emit('step');
 			}
 		});
 	});	
 }
 
-function getACPTemplates() {
+PackageBuilder.prototype.getACPTemplates = function() {
+	var me = this;
+	
 	if (debug) console.log('getACPTemplates called');
 	
 	fs.exists('./src/acptemplates', function(exists) {
 		if (!exists) {
-			getTemplates();
-			return;
+			me.emit('step');
 		}
-		
-		var tape = new Tar({
-			output: fs.createWriteStream('./.build/acptemplates.tar')
-		});
-		var reader = fstream.Reader({
-			path: './src/acptemplates/'/*,
-			filter: function() {
-				return this.basename.match(/.+\.tpl$/);
-			}*/
-		});
-		var entryHandler = function(entry) {
-			if (entry.type === 'File') {
-				tape.append(entry.basename, entry, {
-					allowPipe: true
-				});
+		else {
+			var tape = new Tar({
+				output: fs.createWriteStream('./.build/acptemplates.tar')
+			});
+			var reader = fstream.Reader({
+				path: './src/acptemplates/'/*,
+				filter: function() {
+					return this.basename.match(/.+\.tpl$/);
+				}*/
+			});
+			var entryHandler = function(entry) {
+				if (entry.type === 'File') {
+					tape.append(entry.basename, entry, {
+						allowPipe: true
+					});
+				}
 			}
-		}
-		
-		console.log('Creating acptemplates tar archive');
-		reader.on('entry', entryHandler);
-		reader.on('end', function() {
-			if (debug) console.log('acp templates reader end');
 			
-			getTemplates();
-		});
+			console.log('Creating acptemplates tar archive');
+			reader.on('entry', entryHandler);
+			reader.on('end', function() {
+				if (debug) console.log('acp templates reader end');
+				
+				me.emit('step');
+			});
+		}
 	});
 }
 
-function getTemplates() {
+PackageBuilder.prototype.getTemplates = function() {
+	var me = this;
+	
 	if (debug) console.log('getTemplates called');
 	
 	fs.exists('./src/templates', function(exists) {
 		if (!exists) {
-			getFiles();
-			return;
+			me.emit('step');
 		}
-		
-		var tape = new Tar({
-			output: fs.createWriteStream('./.build/templates.tar')
-		});
-		var reader = fstream.Reader({
-			path: './src/templates/'/*,
-			filter: function() {
-				return this.basename.match(/.+\.tpl$/);
-			}*/
-		});
-		var entryHandler = function(entry) {
-			if (entry.type === 'File') {
-				tape.append(entry.basename, entry, {
-					allowPipe: true
-				});
+		else {
+			var tape = new Tar({
+				output: fs.createWriteStream('./.build/templates.tar')
+			});
+			var reader = fstream.Reader({
+				path: './src/templates/'/*,
+				filter: function() {
+					return this.basename.match(/.+\.tpl$/);
+				}*/
+			});
+			var entryHandler = function(entry) {
+				if (entry.type === 'File') {
+					tape.append(entry.basename, entry, {
+						allowPipe: true
+					});
+				}
 			}
-		}
-		
-		console.log('Creating templates tar archive');
-		reader.on('entry', entryHandler);
-		reader.on('end', function() {
-			if (debug) console.log('templates reader end');
 			
-			getFiles();
-		});
+			console.log('Creating templates tar archive');
+			reader.on('entry', entryHandler);
+			reader.on('end', function() {
+				if (debug) console.log('templates reader end');
+				
+				me.emit('step');
+			});
+		}
 	});
 }
 
-function getFiles() {
+PackageBuilder.prototype.getFiles = function() {
+	var me = this;
+	
 	if (debug) console.log('getFiles called');
 	
 	fs.exists('./src/files', function(exists) {
 		if (!exists) {
-			getPackageInstallationPlugins();
-			return;
+			me.emit('step');
 		}
-		
-		var tape = new Tar({
-			output: fs.createWriteStream('./.build/files.tar')
-		});
-		var reader = fstream.Reader('./src/files/');
-		var entryHandler = function(entry) {
-			if (entry.type === 'File') {
-				var path = entry.path.replace(process.cwd() + Path.sep + 'src' + Path.sep + 'files' + Path.sep, '');
-				
-				tape.append(path, entry, {
-					allowPipe: true
-				});
+		else {
+			var tape = new Tar({
+				output: fs.createWriteStream('./.build/files.tar')
+			});
+			var reader = fstream.Reader('./src/files/');
+			var entryHandler = function(entry) {
+				if (entry.type === 'File') {
+					var path = entry.path.replace(process.cwd() + Path.sep + 'src' + Path.sep + 'files' + Path.sep, '');
+					
+					tape.append(path, entry, {
+						allowPipe: true
+					});
+				}
+				else if (entry.type === 'Directory') {
+					entry.on('entry', entryHandler);
+				}
 			}
-			else if (entry.type === 'Directory') {
-				entry.on('entry', entryHandler);
-			}
-		}
-		
-		console.log('Creating files tar archive');
-		reader.on('entry', entryHandler);
-		reader.on('end', function() {
-			if (debug) console.log('files reader end');
 			
-			getPackageInstallationPlugins();
-		});
+			console.log('Creating files tar archive');
+			reader.on('entry', entryHandler);
+			reader.on('end', function() {
+				if (debug) console.log('files reader end');
+				
+				me.emit('step');
+			});
+		}
 	});
 }
 
-function getPackageInstallationPlugins() {
+PackageBuilder.prototype.getPackageInstallationPlugins = function() {
+	var me = this;
+	
 	if (debug) console.log('getPackageInstallationPlugins called');
 	
 	fs.exists('./src/pips', function(exists) {
 		if (!exists) {
-			buildPackage();
-			return;
+			me.emit('step');
 		}
-		
-		var tape = new Tar({
-			output: fs.createWriteStream('./.build/pips.tar')
-		});
-		var reader = fstream.Reader({
-			path: './src/pips/'/*,
-			filter: function() {
-				return this.basename.match(/.+\.php$/);
-			}*/
-		});
-		var entryHandler = function(entry) {
-			if (entry.type === 'File') {
-				tape.append(entry.basename, entry, {
-					allowPipe: true
-				});
+		else {
+			var tape = new Tar({
+				output: fs.createWriteStream('./.build/pips.tar')
+			});
+			var reader = fstream.Reader({
+				path: './src/pips/'/*,
+				filter: function() {
+					return this.basename.match(/.+\.php$/);
+				}*/
+			});
+			var entryHandler = function(entry) {
+				if (entry.type === 'File') {
+					tape.append(entry.basename, entry, {
+						allowPipe: true
+					});
+				}
 			}
-		}
-		
-		console.log('Creating pips tar archive');
-		reader.on('entry', entryHandler);
-		reader.on('end', function() {
-			if (debug) console.log('pips reader end');
 			
-			buildPackage();
-		});
+			console.log('Creating pips tar archive');
+			reader.on('entry', entryHandler);
+			reader.on('end', function() {
+				if (debug) console.log('pips reader end');
+				
+				me.emit('step');
+			});
+		}
 	});
 }
 
-function buildPackage() {
+PackageBuilder.prototype.buildPackage = function() {
 	if (debug) console.log('buildPackage called');
 	
 	var tape = new Tar({
@@ -289,4 +324,4 @@ function buildPackage() {
 	});
 }
 
-getBuildConfig();
+new PackageBuilder();
