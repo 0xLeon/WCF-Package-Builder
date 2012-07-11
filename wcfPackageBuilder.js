@@ -7,6 +7,48 @@ var debug = false;
 
 console.log('Welcome to WCF Package Builder');
 
+function getBuildConfig() {
+	if (debug) console.log('getBuildConfig called');
+	
+	if (process.argv.length < 3) {
+		console.error('No package directory given.');
+		process.exit(1);
+	}
+	
+	fs.exists(process.argv[2], function(exists) {
+		if (!exists) {
+			console.error('Given package directoy "' + process.argv[2] + '" doesn\'t exists.');
+			process.exit(2);
+		}
+		else {
+			try {
+				process.chdir(process.argv[2]);
+				if (debug) console.log('Changed working directoy to "' + process.cwd() + '"');
+				checkPackageDir();
+			}
+			catch (err) {
+				console.error('Couldn\'t change working directory to "' + process.argv[2] + '"');
+				console.error(err);
+				process.exit(3);
+			}
+		}
+	});
+}
+
+function checkPackageDir() {
+	if (debug) console.log('checkPackageDir called');
+	
+	fs.exists('./src/package.xml', function(exists) {
+		if (!exists) {
+			console.error(process.cwd() + ' doesn\'t seem to be a package, no package.xml file found in src directory');
+			process.exit(4);
+		}
+		else {
+			checkBuildDir();
+		}
+	});
+}
+
 function checkBuildDir() {
 	if (debug) console.log('checkBuildDir called');
 	
@@ -92,13 +134,9 @@ function getACPTemplates() {
 		});
 		var entryHandler = function(entry) {
 			if (entry.type === 'File') {
-				var path = entry.path.replace(__dirname + Path.sep + 'src' + Path.sep + 'acptemplates' + Path.sep, '').replace(/\\/g, '/');
-				tape.append(path, entry, {
+				tape.append(entry.basename, entry, {
 					allowPipe: true
 				});
-			}
-			else if (entry.type === 'Directory') {
-				entry.on('entry', entryHandler);
 			}
 		}
 		
@@ -132,14 +170,9 @@ function getTemplates() {
 		});
 		var entryHandler = function(entry) {
 			if (entry.type === 'File') {
-				var path = entry.path.replace(__dirname + Path.sep + 'src' + Path.sep + 'templates' + Path.sep, '').replace(/\\/g, '/');
-				
-				tape.append(path, entry, {
+				tape.append(entry.basename, entry, {
 					allowPipe: true
 				});
-			}
-			else if (entry.type === 'Directory') {
-				entry.on('entry', entryHandler);
 			}
 		}
 		
@@ -168,7 +201,7 @@ function getFiles() {
 		var reader = fstream.Reader('./src/files/');
 		var entryHandler = function(entry) {
 			if (entry.type === 'File') {
-				var path = entry.path.replace(__dirname + Path.sep + 'src' + Path.sep + 'files' + Path.sep, '').replace(/\\/g, '/');
+				var path = entry.path.replace(process.cwd() + Path.sep + 'src' + Path.sep + 'files' + Path.sep, '');
 				
 				tape.append(path, entry, {
 					allowPipe: true
@@ -209,14 +242,9 @@ function getPackageInstallationPlugins() {
 		});
 		var entryHandler = function(entry) {
 			if (entry.type === 'File') {
-				var path = entry.path.replace(__dirname + Path.sep + 'src' + Path.sep + 'pips' + Path.sep, '').replace(/\\/g, '/');
-				
-				tape.append(path, entry, {
+				tape.append(entry.basename, entry, {
 					allowPipe: true
 				});
-			}
-			else if (entry.type === 'Directory') {
-				entry.on('entry', entryHandler);
 			}
 		}
 		
@@ -234,16 +262,14 @@ function buildPackage() {
 	if (debug) console.log('buildPackage called');
 	
 	var tape = new Tar({
-		output: fs.createWriteStream('./' + Path.basename(__dirname) + '.' + Math.round((new Date()).getTime() / 1000) + '.tar')
+		output: fs.createWriteStream('./' + Path.basename(process.cwd()) + '.' + Math.round((new Date()).getTime() / 1000) + '.tar')
 	});
 	var reader = fstream.Reader('./.build/');
 	
 	console.log('Creating package archive');
 	reader.on('entry', function(entry) {
 		if (entry.type === 'File') {
-			var path = entry.path.replace(__dirname + Path.sep + '.build' + Path.sep, '').replace(/\\/g, '/');
-			
-			tape.append(path, entry, {
+			tape.append(entry.basename, entry, {
 				allowPipe: true
 			});
 		}
@@ -263,4 +289,4 @@ function buildPackage() {
 	});
 }
 
-checkBuildDir();
+getBuildConfig();
