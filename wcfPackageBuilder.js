@@ -10,7 +10,7 @@ var debug = false;
 console.log('Welcome to WCF Package Builder');
 
 function PackageBuilder() {
-	var steps = ['getBuildConfig', 'checkPackageDir', 'checkBuildDir', 'clearBuildDir', 'getPackageConfig', 'getACPTemplates', 'getTemplates', 'getFiles', 'getPaclageInstallationPlugins', 'buildPackage'];
+	var steps = ['getBuildConfig', 'checkPackageDir', 'checkBuildDir', 'clearBuildDir', 'getPackageConfig', 'getACPTemplates', 'getTemplates', 'getFiles', 'getPackageInstallationPlugins', 'buildPackage'];
 	
 	if (!(this instanceof PackageBuilder)) return new PackageBuilder();
 	
